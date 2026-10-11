@@ -1,4 +1,4 @@
-import { type Data, initial } from "./model";
+import { type Data, initial, repairSupersets } from "./model";
 let database: Promise<IDBDatabase> | undefined;
 function db() {
   return (database ??= new Promise<IDBDatabase>((resolve, reject) => {
@@ -14,7 +14,7 @@ export async function load(): Promise<Data> {
   const d = await db();
   return new Promise((resolve, reject) => {
     const r = d.transaction("data").objectStore("data").get("state");
-    r.onsuccess = () => resolve(r.result ?? initial());
+    r.onsuccess = () => resolve(repairSupersets(r.result ?? initial()));
     r.onerror = () => reject(r.error);
   });
 }

@@ -12,6 +12,9 @@ import {
   epley,
   parseBackup,
   pairSuperset,
+  orderSupersets,
+  repairSupersets,
+  supersetLabel,
 } from "./model";
 import "./style.css";
 function App() {
@@ -95,7 +98,7 @@ function App() {
   const modifyProgram = (pid: string, fn: (p: Program) => Program) =>
     change((d) => ({
       ...d,
-      programs: d.programs.map((p) => (p.id === pid ? fn(p) : p)),
+      programs: d.programs.map((p) => (p.id === pid ? (() => { const updated = fn(p); return {...updated, exercises: orderSupersets(updated.exercises)}; })() : p)),
     }));
   const active = data?.active;
   const modifyActive = (fn: (w: Workout) => Workout) =>
@@ -285,18 +288,12 @@ function App() {
                   <div className="section-head">
                     <h3>{e.name}</h3>
                     <span className="badge">
-                      {e.superset
-                        ? "Supersetti " +
-                          (active.exercises
-                            .filter((x) => x.superset === e.superset)
-                            .findIndex((x) => x.id === e.id) === 0
-                            ? "A"
-                            : "B")
-                        : `${e.rest} s`}
+                      {supersetLabel(active.exercises, e.id) ?? `${e.rest} s`}
                     </span>
                   </div>
                   <p className="muted">
                     Tavoite {e.reps} toistoa · palautus {e.rest} s
+                    {e.superset && <> · Pari: {active.exercises.find(x => x.id !== e.id && x.superset === e.superset)?.name}</>}
                   </p>
                   <div className="set headings">
                     <span>#</span>
@@ -899,7 +896,7 @@ function App() {
                   try {
                     if (f.size > 10_000_000)
                       throw Error("Tiedosto saa olla enintään 10 Mt.");
-                    const imported = parseBackup(await f.text());
+                    const imported = repairSupersets(parseBackup(await f.text()));
                     if (
                       confirm(
                         "Korvataanko kaikki nykyiset tiedot varmuuskopiolla?",

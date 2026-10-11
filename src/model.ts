@@ -73,7 +73,7 @@ export function startWorkout(program: Program, sessions: Workout[]): Workout {
     programId: program.id,
     name: program.name,
     date: dateToday(),
-    exercises: program.exercises.map((e) => {
+    exercises: orderSupersets(program.exercises).map((e) => {
       const prev = [...sessions]
         .reverse()
         .sort((a, b) => b.date.localeCompare(a.date))
@@ -198,4 +198,39 @@ export function pairSuperset(program: Program, sourceId: string, partnerId: stri
   const ordered = exercises.filter(e => e.id !== partnerId);
   ordered.splice(ordered.findIndex(e => e.id === sourceId) + 1, 0, pairedPartner);
   return { ...program, exercises: ordered };
+}
+
+/** Keep every valid pair adjacent; discard orphaned/ambiguous group markers. */
+export function orderSupersets<T extends Exercise>(exercises: T[]): T[] {
+  const groups = new Map<string, T[]>();
+  for (const e of exercises) if (e.superset) groups.set(e.superset, [...(groups.get(e.superset) ?? []), e]);
+  const result: T[] = [];
+  const seen = new Set<string>();
+  for (const e of exercises) {
+    if (seen.has(e.id)) continue;
+    const pair = e.superset ? groups.get(e.superset) : undefined;
+    if (pair?.length === 2) {
+      result.push(...pair); pair.forEach(x => seen.add(x.id));
+    } else {
+      result.push(e.superset ? {...e, superset: null} : e); seen.add(e.id);
+    }
+  }
+  return result;
+}
+export function repairSupersets(data: Data): Data {
+  const programs = data.programs.map(p => ({...p, exercises: orderSupersets(p.exercises)}));
+  const program = programs.find(p => p.id === data.active?.programId);
+  const active = data.active ? {...data.active, exercises: orderSupersets(data.active.exercises.map(e => {
+    const definition = program?.exercises.find(x => x.id === e.id);
+    return definition ? {...e, superset: definition.superset} : e;
+  }))} : null;
+  return {...data, programs, active};
+}
+export function supersetLabel(exercises: Exercise[], exerciseId: string): string | null {
+  const e = exercises.find(x => x.id === exerciseId);
+  if (!e?.superset) return null;
+  const pair = exercises.filter(x => x.superset === e.superset);
+  if (pair.length !== 2) return null;
+  const groups = [...new Set(exercises.map(x => x.superset).filter(Boolean))];
+  return `Supersetti ${groups.indexOf(e.superset) + 1} · ${pair[0].id === e.id ? 'A' : 'B'}`;
 }

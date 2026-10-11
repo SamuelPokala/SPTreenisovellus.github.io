@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { initial, startWorkout, volume, epley, parseBackup, pairSuperset, exercise } from "./model";
+import { initial, startWorkout, volume, epley, parseBackup, pairSuperset, exercise, orderSupersets, repairSupersets, supersetLabel } from "./model";
 describe("training model", () => {
   it("calculates completed volume and Epley estimate", () => {
     const d = initial(),
@@ -62,4 +62,24 @@ describe("superset order", () => {
     expect(unpaired.exercises.map(e=>e.name)).toEqual(["A","D","B","C"]);
     expect(unpaired.exercises.every(e=>e.superset===null)).toBe(true);
   });
+});
+
+describe("existing supersets", () => {
+ it("orders separated pairs and identifies each pair separately", () => {
+  const e = ["Kyykky", "Romanialainen maastaveto", "Leuanveto", "Punnerrus"].map(n=>exercise(n));
+  e[0].superset=e[2].superset="pair1";e[1].superset=e[3].superset="pair2";
+  const ordered=orderSupersets(e);
+  expect(ordered.map(x=>x.name)).toEqual(["Kyykky","Leuanveto","Romanialainen maastaveto","Punnerrus"]);
+  expect(ordered.map(x=>supersetLabel(ordered,x.id))).toEqual(["Supersetti 1 · A","Supersetti 1 · B","Supersetti 2 · A","Supersetti 2 · B"]);
+ });
+ it("repairs active workout pair definitions while retaining entered sets",()=>{
+  const d=initial();const p=d.programs[0];d.active=startWorkout(p,[]);
+  d.active.exercises[0].sets[0]={kg:80,reps:5,done:true};
+  p.exercises[0].superset=p.exercises[2].superset="pair";
+  const repaired=repairSupersets(d);
+  expect(repaired.active!.exercises.map(e=>e.id)).toEqual([p.exercises[0].id,p.exercises[2].id,p.exercises[1].id]);
+  expect(repaired.active!.exercises[0].sets[0]).toEqual({kg:80,reps:5,done:true});
+  expect(startWorkout(p,[]).exercises.map(e=>e.id)).toEqual(repaired.active!.exercises.map(e=>e.id));
+ });
+ it("removes orphaned labels",()=>{const e=exercise();e.superset="orphan";expect(orderSupersets([e])[0].superset).toBeNull()});
 });
