@@ -17,6 +17,7 @@ import {
   supersetLabel,
 } from "./model";
 import "./style.css";
+import {NumberInput} from "./NumberInput";
 function App() {
   const [data, setData] = useState<Data | null>(null),
     [tab, setTab] = useState("treeni"),
@@ -304,9 +305,8 @@ function App() {
                   {e.sets.map((s, si) => (
                     <div className={"set " + (s.done ? "done" : "")} key={si}>
                       <span>{si + 1}</span>
-                      <input
+                      <NumberInput
                         aria-label={`${e.name} sarja ${si + 1} paino`}
-                        type="number"
                         inputMode="decimal"
                         min="0"
                         max="2000"
@@ -330,9 +330,8 @@ function App() {
                             }));
                         }}
                       />
-                      <input
+                      <NumberInput
                         aria-label={`${e.name} sarja ${si + 1} toistot`}
-                        type="number"
                         inputMode="numeric"
                         min="1"
                         max="100"
@@ -525,8 +524,7 @@ function App() {
                     ].map(([key, label, max]) => (
                       <label key={key}>
                         {label}
-                        <input
-                          type="number"
+                        <NumberInput
                           inputMode="numeric"
                           min={key === "rest" ? 0 : 1}
                           max={max}

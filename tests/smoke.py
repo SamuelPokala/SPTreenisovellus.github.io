@@ -26,7 +26,16 @@ with sync_playwright() as p:
     page.get_by_role('button',name='Siirrä Veto alas').click()
     page.get_by_role('button',name='Treeni',exact=True).click()
     page.locator('.program').filter(has_text='Testivoima').get_by_role('button',name='Aloita →').click()
-    page.get_by_label('Kyykkytesti sarja 1 paino').fill('60')
+    weight=page.get_by_label('Kyykkytesti sarja 1 paino')
+    weight.fill('')
+    assert weight.input_value()==''
+    weight.press_sequentially('060')
+    assert weight.input_value()=='60'
+    reps=page.get_by_label('Kyykkytesti sarja 1 toistot')
+    reps.fill('')
+    assert reps.input_value()==''
+    reps.press_sequentially('5')
+    assert reps.input_value()=='5'
     page.get_by_role('button',name='Kyykkytesti sarja 1 valmis',exact=True).click()
     assert page.get_by_role('button',name='Kyykkytesti sarja 1 valmis',exact=True).get_attribute('aria-pressed')=='true'
     page.get_by_label('Veto sarja 1 paino').fill('40')
