@@ -5,7 +5,7 @@ Suomenkielinen, tumma ja puhelimella käytettävä kuntosalipäiväkirja. React 
 ## Ominaisuudet
 
 - Nimetyt ohjelmat, liikkeiden lisäys/poisto/järjestys, sarjat, tavoitetoistot ja palautusajat.
-- Kahden liikkeen supersetit: palautus alkaa vasta, kun parin molemmat vastaavat sarjat on kuitattu. Liikkeet näkyvät ohjelman järjestyksessä; järjestä pari halutessasi peräkkäin.
+- Kahden liikkeen supersetit: palautus alkaa vasta, kun parin molemmat vastaavat sarjat on kuitattu. Supersettiparin valinta siirtää pariksi valitun liikkeen automaattisesti heti nykyisen liikkeen jälkeen.
 - Sarjojen painot ja toteutuneet toistot, yhden painalluksen kuittaus sekä palautusajastin.
 - Edellisen kirjatun harjoituksen liikekohtaiset painot ja toistot ehdotuksina. Keskeneräinen treeni tallentuu automaattisesti.
 - Historia, suurimman sarjapainon graafi, Epleyn 1RM-arvio ja tehtyjen sarjojen volyymi.

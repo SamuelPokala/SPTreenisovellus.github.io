@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { initial, startWorkout, volume, epley, parseBackup } from "./model";
+import { initial, startWorkout, volume, epley, parseBackup, pairSuperset, exercise } from "./model";
 describe("training model", () => {
   it("calculates completed volume and Epley estimate", () => {
     const d = initial(),
@@ -41,4 +41,25 @@ describe("training model", () => {
     expect(() => parseBackup(JSON.stringify(d))).toThrow();
   });
 
+});
+
+describe("superset order", () => {
+  it.each([[0, 3, [0, 3, 1, 2]], [3, 0, [1, 2, 3, 0]], [1, 2, [0, 1, 2, 3]]])("moves partner after source (%s, %s)", (source, partner, expected) => {
+    const exercises = ["A", "B", "C", "D"].map(name => exercise(name));
+    const program = {id: "program", name: "Test", exercises};
+    const result = pairSuperset(program, exercises[source as number].id, exercises[partner as number].id);
+    expect(result.exercises.map(e => e.name)).toEqual((expected as number[]).map(i => exercises[i].name));
+    expect(result.exercises.find(e => e.id === exercises[source as number].id)?.superset).toBe(result.exercises.find(e => e.id === exercises[partner as number].id)?.superset);
+    expect(program.exercises.map(e => e.name)).toEqual(["A", "B", "C", "D"]);
+  });
+  it("clears former pairs and unpairs without changing order", () => {
+    const [a,b,c,d] = ["A","B","C","D"].map(name => exercise(name));
+    a.superset=b.superset="old1";c.superset=d.superset="old2";
+    const result=pairSuperset({id:"program",name:"Test",exercises:[a,b,c,d]},a.id,d.id);
+    expect(result.exercises.map(e=>e.name)).toEqual(["A","D","B","C"]);
+    expect(result.exercises.slice(2).every(e=>e.superset===null)).toBe(true);
+    const unpaired=pairSuperset(result,a.id,"");
+    expect(unpaired.exercises.map(e=>e.name)).toEqual(["A","D","B","C"]);
+    expect(unpaired.exercises.every(e=>e.superset===null)).toBe(true);
+  });
 });

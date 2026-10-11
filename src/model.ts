@@ -179,3 +179,23 @@ export function parseBackup(raw: string): Data {
     throw Error("Tiedosto ei ole kelvollinen Voimatreeni-varmuuskopio.");
   return d as Data;
 }
+
+/** Pair the chosen exercises and place the partner immediately after the source. */
+export function pairSuperset(program: Program, sourceId: string, partnerId: string): Program {
+  const source = program.exercises.find(e => e.id === sourceId);
+  const partner = program.exercises.find(e => e.id === partnerId);
+  if (!source || (partnerId && (!partner || partnerId === sourceId))) return program;
+  const group = partner ? id() : null;
+  const exercises = program.exercises.map(e => {
+    if (e.id === sourceId || e.id === partnerId) return { ...e, superset: group };
+    if (e.superset && (e.superset === source.superset || e.superset === partner?.superset)) {
+      return { ...e, superset: null };
+    }
+    return e;
+  });
+  if (!partner) return { ...program, exercises };
+  const pairedPartner = exercises.find(e => e.id === partnerId)!;
+  const ordered = exercises.filter(e => e.id !== partnerId);
+  ordered.splice(ordered.findIndex(e => e.id === sourceId) + 1, 0, pairedPartner);
+  return { ...program, exercises: ordered };
+}

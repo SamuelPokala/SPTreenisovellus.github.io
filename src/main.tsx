@@ -11,6 +11,7 @@ import {
   volume,
   epley,
   parseBackup,
+  pairSuperset,
 } from "./model";
 import "./style.css";
 function App() {
@@ -610,25 +611,8 @@ function App() {
                         )?.id || ""
                       }
                       onChange={(ev) => {
-                        const partner = ev.target.value,
-                          group = partner ? id() : null;
-                        modifyProgram(selected.id, (p) => {
-                          const old = p.exercises.find(
-                            (x) => x.id === partner,
-                          )?.superset;
-                          return {
-                            ...p,
-                            exercises: p.exercises.map((x) =>
-                              x.id === e.id || x.id === partner
-                                ? { ...x, superset: group }
-                                : x.superset &&
-                                    (x.superset === e.superset ||
-                                      x.superset === old)
-                                  ? { ...x, superset: null }
-                                  : x,
-                            ),
-                          };
-                        });
+                        const partner = ev.target.value;
+                        modifyProgram(selected.id, p => pairSuperset(p, e.id, partner));
                       }}
                     >
                       <option value="">Ei supersettiä</option>

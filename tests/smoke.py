@@ -12,14 +12,15 @@ with sync_playwright() as p:
     page.get_by_role('button',name='Ohjelmat',exact=True).click()
     page.get_by_role('button',name='+ Uusi').click()
     page.get_by_label('Ohjelman nimi').fill('Testivoima')
-    for name in ['Kyykkytesti','Veto']:
+    for name in ['Kyykkytesti','Väli','Veto']:
         page.get_by_role('button',name='+ Lisää liike').click()
         page.get_by_label('Liikkeen nimi').last.fill(name)
     page.get_by_label('Sarjat',exact=True).first.fill('1')
     page.get_by_label('Toistot',exact=True).first.fill('5')
     page.get_by_label('Palautus · s').first.fill('60')
     page.get_by_label('Supersettipari').first.select_option(label='Veto')
-    assert page.get_by_label('Supersettipari').last.input_value()
+    assert page.get_by_label('Supersettipari').nth(1).input_value()
+    assert page.get_by_label('Liikkeen nimi').evaluate_all('(inputs) => inputs.map(i => i.value)') == ['Kyykkytesti', 'Veto', 'Väli']
     page.get_by_role('button',name='Siirrä Veto ylös').click()
     assert page.get_by_label('Liikkeen nimi').first.input_value()=='Veto'
     page.get_by_role('button',name='Siirrä Veto alas').click()
