@@ -81,6 +81,7 @@ nav {
 }
 button,
 input,
+textarea,
 select {
   font: inherit;
   min-height: 48px;
@@ -187,6 +188,7 @@ label {
   margin: 12px 0;
 }
 input,
+textarea,
 select {
   display: block;
   width: 100%;
@@ -352,6 +354,7 @@ footer p {
 }
 button:focus-visible,
 input:focus-visible,
+textarea:focus-visible,
 select:focus-visible {
   outline: 3px solid #b8ef62;
   outline-offset: 3px;
@@ -382,4 +385,13 @@ select:focus-visible {
   .section-head .muted {
     font-size: 9px;
   }
+}
+
+textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.exercise-notes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }

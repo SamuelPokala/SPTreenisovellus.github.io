@@ -292,6 +292,25 @@ function App() {
                       {supersetLabel(active.exercises, e.id) ?? `${e.rest} s`}
                     </span>
                   </div>
+                  <label>
+                    Muistiinpanot
+                    <textarea
+                      aria-label={`${e.name} muistiinpanot`}
+                      rows={2}
+                      maxLength={1000}
+                      placeholder="Esim. vastaote tai käsipainot"
+                      value={e.notes ?? ""}
+                      onChange={(event) => {
+                        const notes = event.currentTarget.value;
+                        modifyActive((w) => ({
+                          ...w,
+                          exercises: w.exercises.map((x) =>
+                            x.id === e.id ? { ...x, notes } : x,
+                          ),
+                        }));
+                      }}
+                    />
+                  </label>
                   <p className="muted">
                     Tavoite {e.reps} toistoa · palautus {e.rest} s
                     {e.superset && <> · Pari: {active.exercises.find(x => x.id !== e.id && x.superset === e.superset)?.name}</>}
@@ -836,6 +855,7 @@ function App() {
                   {w.exercises.map((e) => (
                     <div key={e.id}>
                       <h4>{e.name}</h4>
+                      {e.notes && <p className="exercise-notes">{e.notes}</p>}
                       <p>
                         {e.sets
                           .map((s) => `${s.kg} kg × ${s.reps}`)

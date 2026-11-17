@@ -5,6 +5,7 @@ export type Exercise = {
   reps: number;
   rest: number;
   superset: string | null;
+  notes?: string;
 };
 export type Program = { id: string; name: string; exercises: Exercise[] };
 export type SetEntry = { kg: number; reps: number; done: boolean };
@@ -86,6 +87,7 @@ export function startWorkout(program: Program, sessions: Workout[]): Workout {
       const done = prev?.sets.filter((s) => s.done);
       return {
         ...e,
+        notes: prev?.notes ?? "",
         sets: Array.from({ length: e.count }, (_, i) => ({
           kg: done?.[i]?.kg ?? done?.at(-1)?.kg ?? 0,
           reps: done?.[i]?.reps ?? done?.at(-1)?.reps ?? e.reps,
@@ -121,7 +123,8 @@ const validExercise = (e: unknown) =>
   num(e.count, 1, 20, true) &&
   num(e.reps, 1, 100, true) &&
   num(e.rest, 0, 1800, true) &&
-  (e.superset === null || text(e.superset));
+  (e.superset === null || text(e.superset)) &&
+  (e.notes === undefined || (typeof e.notes === "string" && e.notes.length <= 1000));
 function validWorkout(w: unknown): boolean {
   return (
     obj(w) &&

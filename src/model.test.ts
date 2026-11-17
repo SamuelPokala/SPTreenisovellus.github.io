@@ -83,3 +83,40 @@ describe("existing supersets", () => {
  });
  it("removes orphaned labels",()=>{const e=exercise();e.superset="orphan";expect(orderSupersets([e])[0].superset).toBeNull()});
 });
+
+describe("exercise notes", () => {
+  it("keeps legacy backups compatible and roundtrips notes", () => {
+    const d = initial();
+    expect(parseBackup(JSON.stringify(d))).toEqual(d);
+    d.active = startWorkout(d.programs[0], []);
+    d.active.exercises[0].notes = "Vastaote\nKäsipainot 20 kg";
+    expect(parseBackup(JSON.stringify(d)).active!.exercises[0].notes)
+      .toBe("Vastaote\nKäsipainot 20 kg");
+    d.sessions = [d.active];
+    d.active = null;
+    expect(parseBackup(JSON.stringify(d)).sessions[0].exercises[0].notes)
+      .toBe("Vastaote\nKäsipainot 20 kg");
+  });
+  it("suggests latest notes, including an explicitly cleared note", () => {
+    const d = initial(), p = d.programs[0];
+    const older = startWorkout(p, []);
+    older.date = "2026-11-15";
+    older.exercises[0].notes = "Myötäote";
+    const newer = startWorkout(p, [older]);
+    newer.date = "2026-11-16";
+    newer.exercises[0].notes = "Vastaote";
+    expect(startWorkout(p, [older, newer]).exercises[0].notes).toBe("Vastaote");
+    newer.exercises[0].notes = "";
+    expect(startWorkout(p, [older, newer]).exercises[0].notes).toBe("");
+    expect(older.exercises[0].notes).toBe("Myötäote");
+  });
+  it("rejects non-text and oversized notes in backups", () => {
+    const d = initial();
+    d.active = startWorkout(d.programs[0], []);
+    for (const notes of [42, null, "x".repeat(1001)]) {
+      const raw = JSON.parse(JSON.stringify(d));
+      raw.active.exercises[0].notes = notes;
+      expect(() => parseBackup(JSON.stringify(raw))).toThrow();
+    }
+  });
+});

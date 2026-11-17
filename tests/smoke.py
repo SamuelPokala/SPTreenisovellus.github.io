@@ -26,6 +26,8 @@ with sync_playwright() as p:
     page.get_by_role('button',name='Siirrä Veto alas').click()
     page.get_by_role('button',name='Treeni',exact=True).click()
     page.locator('.program').filter(has_text='Testivoima').get_by_role('button',name='Aloita →').click()
+    notes=page.get_by_label('Kyykkytesti muistiinpanot')
+    notes.fill('Vastaote\nKäsipainot 20 kg')
     weight=page.get_by_label('Kyykkytesti sarja 1 paino')
     weight.fill('')
     assert weight.input_value()==''
@@ -45,6 +47,7 @@ with sync_playwright() as p:
     page.get_by_role('status').filter(has_text='Tallennettu laitteelle').wait_for()
     page.reload()
     assert page.get_by_label('Kyykkytesti sarja 1 paino').input_value()=='60'
+    assert page.get_by_label('Kyykkytesti muistiinpanot').input_value()=='Vastaote\nKäsipainot 20 kg'
     page.get_by_role('button',name='Tallenna treeni',exact=True).click()
     page.get_by_role('button',name='Kehitys',exact=True).click()
     page.get_by_label('Liike',exact=True).select_option(label='Kyykkytesti')
@@ -52,9 +55,12 @@ with sync_playwright() as p:
     assert '300 kg' in page.locator('table').inner_text()
     page.get_by_role('button',name='Historia',exact=True).click()
     assert '500 kg' in page.locator('summary').inner_text()
+    page.locator('summary').click()
+    assert page.locator('.exercise-notes').inner_text()=='Vastaote\nKäsipainot 20 kg'
     with page.expect_download() as dl:
         page.get_by_role('button',name='↓ Vie JSON-varmuuskopio').click()
     backup=json.loads(open(dl.value.path()).read())
+    assert backup['sessions'][0]['exercises'][0]['notes']=='Vastaote\nKäsipainot 20 kg'
     assert len(backup['sessions'])==1 and len(backup['programs'])==3
     page.locator('input[type=file]').set_input_files({'name':'invalid.json','mimeType':'application/json','buffer':b'{"version":9}'})
     page.get_by_role('status').filter(has_text='kelvollinen').wait_for()
@@ -66,6 +72,8 @@ with sync_playwright() as p:
     page.get_by_role('button',name='Treeni',exact=True).click()
     page.locator('.program').filter(has_text='Testivoima').get_by_role('button',name='Aloita →').click()
     assert page.get_by_label('Kyykkytesti sarja 1 paino').input_value()=='60'
+    assert page.get_by_label('Kyykkytesti muistiinpanot').input_value()=='Vastaote\nKäsipainot 20 kg'
+    page.get_by_label('Kyykkytesti muistiinpanot').fill('')
     assert page.get_by_role('button',name='Kyykkytesti sarja 1 valmis',exact=True).get_attribute('aria-pressed')=='false'
     page.get_by_role('status').filter(has_text='Tallennettu laitteelle').wait_for()
     page.evaluate('navigator.serviceWorker.ready')
@@ -75,6 +83,7 @@ with sync_playwright() as p:
     page.reload()
     page.get_by_label('Kyykkytesti sarja 1 paino').wait_for()
     assert page.get_by_label('Kyykkytesti sarja 1 paino').input_value()=='60'
+    assert page.get_by_label('Kyykkytesti muistiinpanot').input_value()==''
     assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth')
     page.screenshot(path='/tmp/voimatreeni-mobile.png',full_page=True)
     assert not errors,errors
